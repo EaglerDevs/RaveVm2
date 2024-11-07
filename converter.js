@@ -1,13 +1,15 @@
 function convertToPython() {
-    // Grab the Java code from the textarea
     var javaCode = document.getElementById('javaCode').value;
 
-    // Convert Java code to Python with some basic rules
+    // Automatically fix common Java syntax issues
+    javaCode = fixSyntaxErrors(javaCode);
+
+    // Convert Java to Python code
     var pythonCode = javaCode
         // Handle printing (System.out.println)
         .replace(/System\.out\.println\((.*?)\);/g, 'print($1)')
 
-        // Handle Java's main method and function signature
+        // Handle Java main method and function signature
         .replace(/public\s+static\s+void\s+main\s*\(String\[\]\s+args\)/g, 'def main():')
 
         // Handle class declaration (remove the concept of public/private)
@@ -15,10 +17,14 @@ function convertToPython() {
         .replace(/private\s+/g, '# Private - Not needed in Python')
         .replace(/protected\s+/g, '# Protected - Not needed in Python')
 
+        // Handle inheritance and abstract classes (simplified)
+        .replace(/extends\s+(\w+)/g, 'inherits from $1')
+        .replace(/implements\s+(\w+)/g, 'implements $1')
+
         // Handle constructors (simplified)
         .replace(/public\s+(\w+)\(\)/g, 'def __init__(self):')
 
-        // Handle basic Java types (int, boolean, String, etc.)
+        // Handle Java types (simplified)
         .replace(/\bint\b/g, 'int')
         .replace(/\bboolean\b/g, 'bool')
         .replace(/\bString\b/g, 'str')
@@ -42,18 +48,57 @@ function convertToPython() {
         // Handle return statements
         .replace(/\breturn\b/g, 'return')
 
-        // Remove semicolons (not needed in Python)
-        .replace(/;/g, '')
+        // Handle incorrect semicolons and brackets
+        .replace(/;/g, '') // Remove all semicolons (they are not used in Python)
+        .replace(/\{|\}/g, '') // Remove curly braces
 
-        // Handle LWJGL specific library references (placeholder)
+        // Handle libraries (ArrayList, HashMap, etc.)
+        .replace(/ArrayList<(\w+)>/g, 'list')
+        .replace(/HashMap<(\w+),\s*(\w+)>/g, 'dict')
+        .replace(/StringBuilder/g, 'str') // Simplified (you could map this to a StringBuilder-like class)
+
+        // Handle LWJGL library references (basic mapping)
         .replace(/\borg\.lwjgl\.sys\.(\w+)\b/g, '# LWJGL Library: org.lwjgl.' + '$1')
 
-        // Handle basic Java collection classes (ArrayList, etc.)
-        .replace(/ArrayList<(\w+)>/g, 'list')
-
-        // Handle generic import statements (placeholder)
-        .replace(/import\s+(\w+\.\w+);\s*/g, '# import statement - needs to be handled for Python')
-
-    // Display the converted Python code in the "pythonCode" div
+    // Display the converted Python code
     document.getElementById('pythonCode').innerText = pythonCode;
+}
+
+// Function to fix common Java syntax errors
+function fixSyntaxErrors(javaCode) {
+    // Fix unclosed braces
+    javaCode = fixUnclosedBraces(javaCode);
+
+    // Fix missing semicolons (replace them with proper Python syntax)
+    javaCode = fixSemicolons(javaCode);
+
+    // Fix missing return statements
+    javaCode = fixReturnStatements(javaCode);
+
+    // Return fixed Java code
+    return javaCode;
+}
+
+// Fix unclosed curly braces (mismatched brackets)
+function fixUnclosedBraces(code) {
+    let openBraces = (code.match(/{/g) || []).length;
+    let closeBraces = (code.match(/}/g) || []).length;
+    let braceDifference = openBraces - closeBraces;
+
+    if (braceDifference > 0) {
+        code += '} '.repeat(braceDifference);
+    }
+
+    return code;
+}
+
+// Fix missing semicolons (although they're not needed in Python, we can identify and remove them)
+function fixSemicolons(code) {
+    return code.replace(/;/g, '');
+}
+
+// Handle missing return statements in Java methods (add "return None" for void methods)
+function fixReturnStatements(code) {
+    // If a function doesn't have a return statement and is void in Java, add "return None" for Python
+    return code.replace(/public\s+void\s+(\w+)\(.*\)\s*\{[\s\S]*\}/g, 'def $1(self):\n    return None');
 }
