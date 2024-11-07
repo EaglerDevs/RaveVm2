@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RaveVM</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>RaveVM</h1>
+    <p><em>Warning: This is a very basic version and can only handle a few Java constructs.</em></p>
+    
+    <textarea id="javaCode" placeholder="Paste your Java code here..."></textarea>
+    <br>
+    <button onclick="convertToPython()">Convert to Python</button>
+    <h2>Converted Python Code</h2>
+    <pre id="pythonCode"></pre>
+
+    <script src="converter.js"></script>
+</body>
+</html>
