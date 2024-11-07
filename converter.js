@@ -2,30 +2,58 @@ function convertToPython() {
     // Grab the Java code from the textarea
     var javaCode = document.getElementById('javaCode').value;
 
-    // A super fancy way of converting Java to Python (just kidding)
+    // Convert Java code to Python with some basic rules
     var pythonCode = javaCode
-        .replace(/System\.out\.println\((.*?)\);/g, 'print($1)') // Just printing stuff, no biggie
-        .replace(/public\s+static\s+void\s+main\s*\(String\[\]\s+args\)/g, 'def main():') // Main method? Meh, just a def.
-        .replace(/public\s+class\s+\w+/g, '# Class? Yeah, we don\'t care about that in Python.') // Classes are overrated.
-        .replace(/private\s+/g, '# Private variables? Pfft, who needs that?') // Private? Nah, just chill.
-        .replace(/protected\s+/g, '# Protected... protected from what though?') // Who needs protection, really?
-        .replace(/class\s+/g, 'class ') // No fancy transformations needed, just "class"
-        .replace(/new\s+/g, '# New object creation? Like, whoa.') // new keyword... so confusing, right?
-        .replace(/int\s+/g, 'int ') // Java ints, just like Python's ints... almost.
-        .replace(/String\s+/g, 'str ') // Strings are just strings. (lol)
-        .replace(/boolean\s+/g, 'bool ') // Java booleans to Python booleans... amazing stuff.
-        .replace(/;\s*/g, '') // No semicolons in Python. Like, why bother?
-        .replace(/\btrue\b/g, 'True') // "True" in Python is capitalized. Not like Java, obviously.
-        .replace(/\bfalse\b/g, 'False') // False in Python. Not that it matters much.
-        .replace(/if\s*\((.*?)\)\s*\{/g, 'if $1:') // If statements... you know how they work.
-        .replace(/else\s*\{/g, 'else:') // Else. Because Python is simple, right?
-        .replace(/for\s*\(.*\)\s*\{/g, 'for i in range():') // For loops... because loops are fun.
-        .replace(/while\s*\(.*\)\s*\{/g, 'while:') // While loops... duh.
-        .replace(/\breturn\b/g, '# Uhh, returning something? Let\'s just... return it.') // Return? Whatever.
-        .replace(/;/g, '') // Semicolons? Nah, they aren’t needed in Python.
-        .replace(/\btrue\b/g, 'True') // Java's true is Python's True. #Mindblown
-        .replace(/\bfalse\b/g, 'False'); // And false in Java is False in Python. Fancy, huh?
+        // Handle printing (System.out.println)
+        .replace(/System\.out\.println\((.*?)\);/g, 'print($1)')
 
-    // Display the converted Python code
+        // Handle Java's main method and function signature
+        .replace(/public\s+static\s+void\s+main\s*\(String\[\]\s+args\)/g, 'def main():')
+
+        // Handle class declaration (remove the concept of public/private)
+        .replace(/public\s+class\s+(\w+)/g, 'class $1:')
+        .replace(/private\s+/g, '# Private - Not needed in Python')
+        .replace(/protected\s+/g, '# Protected - Not needed in Python')
+
+        // Handle constructors (simplified)
+        .replace(/public\s+(\w+)\(\)/g, 'def __init__(self):')
+
+        // Handle basic Java types (int, boolean, String, etc.)
+        .replace(/\bint\b/g, 'int')
+        .replace(/\bboolean\b/g, 'bool')
+        .replace(/\bString\b/g, 'str')
+        .replace(/\bfloat\b/g, 'float')
+        .replace(/\bdouble\b/g, 'float') // Convert double to float in Python
+
+        // Handle array declaration and initialization
+        .replace(/\b(\w+)\[\]\s+(\w+)\s*=\s*new\s+(\w+)\[\d+\];/g, '$2 = [$3() for _ in range($3)]') // Array initialization (simplified)
+        .replace(/\b(\w+)\[\]\s+(\w+)\s*=\s*\{(.*?)\};/g, '$2 = [$3]') // Array initialization with values
+
+        // Handle Java for loop
+        .replace(/for\s*\(\s*(\w+)\s+(\w+)\s*=\s*(\d+)\s*;\s*(\w+)\s*<\s*(\d+)\s*;\s*(\w+)\+\+\)/g, 'for $2 in range($3, $5):')
+
+        // Handle Java while loop
+        .replace(/while\s*\((.*?)\)\s*\{/g, 'while $1:')
+
+        // Handle if/else statement
+        .replace(/if\s*\((.*?)\)\s*\{/g, 'if $1:')
+        .replace(/else\s*\{/g, 'else:')
+
+        // Handle return statements
+        .replace(/\breturn\b/g, 'return')
+
+        // Remove semicolons (not needed in Python)
+        .replace(/;/g, '')
+
+        // Handle LWJGL specific library references (placeholder)
+        .replace(/\borg\.lwjgl\.sys\.(\w+)\b/g, '# LWJGL Library: org.lwjgl.' + '$1')
+
+        // Handle basic Java collection classes (ArrayList, etc.)
+        .replace(/ArrayList<(\w+)>/g, 'list')
+
+        // Handle generic import statements (placeholder)
+        .replace(/import\s+(\w+\.\w+);\s*/g, '# import statement - needs to be handled for Python')
+
+    // Display the converted Python code in the "pythonCode" div
     document.getElementById('pythonCode').innerText = pythonCode;
 }
